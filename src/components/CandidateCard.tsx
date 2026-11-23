@@ -1,4 +1,4 @@
-import { Image as ImageIcon, Video, MessageSquare, MapPin, User } from 'lucide-react';
+import { Image as ImageIcon, Video, MessageSquare } from 'lucide-react';
 import {
   CANDIDATE_STATUS_META,
   ROLES_BY_ID,
@@ -17,53 +17,52 @@ export function CandidateCard({ candidate, showRoleLabel = false, onOpen }: Cand
   const cover = candidate.photos[0];
   const coverSrc = cover?.thumbDataUrl || cover?.url || null;
   const statusMeta = CANDIDATE_STATUS_META[candidate.status];
-  const uploaderRole = TEAM_ROLES[candidate.uploadedByRole] ?? TEAM_ROLES.team;
   const verdicts = Object.values(candidate.verdicts ?? {});
   const role = ROLES_BY_ID[candidate.roleId];
 
   return (
-    <article className="candidate-card-wrap group overflow-hidden rounded-2xl border border-[#E5DFD5] bg-white shadow-[0_1px_3px_rgba(26,24,22,0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-[#CBBFA8] hover:shadow-[0_12px_30px_-14px_rgba(26,24,22,0.2)]">
+    <article className="candidate-card-wrap group overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm transition duration-150 hover:-translate-y-0.5 hover:border-slate-900 hover:shadow-lg">
       <button
         type="button"
         onClick={() => onOpen(candidate)}
-        className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9C7434]"
+        className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
       >
-        {/* Portrait Media Frame (3:4 prevents CLS) */}
-        <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#EFECE5]">
+        {/* Big Visual-First Portrait Frame (3:4 prevents CLS) */}
+        <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-900">
           {coverSrc ? (
             <img
               src={coverSrc}
               alt={candidate.actorName}
               loading="lazy"
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+              className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
             />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-b from-[#F2EEE6] to-[#E5DFD3] p-4 text-center text-[#786F64]">
-              <Video className="h-8 w-8 text-[#9C7434]" />
-              <span className="text-xs font-medium">Video-only submission</span>
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-slate-800 p-4 text-center text-slate-300">
+              <Video className="h-9 w-9 text-amber-400" />
+              <span className="text-xs font-semibold">Video Entry</span>
             </div>
           )}
 
-          {/* Top Status Pill */}
-          <div className="absolute left-3 top-3 flex items-center gap-1.5">
+          {/* High-Contrast Status Pill */}
+          <div className="absolute left-3 top-3">
             <span
-              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold shadow-sm backdrop-blur-sm ${statusMeta.badgeClass}`}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold shadow-md ${statusMeta.badgeClass}`}
             >
               <span className={`h-1.5 w-1.5 rounded-full ${statusMeta.dotClass}`} />
               {statusMeta.label}
             </span>
           </div>
 
-          {/* Media Count Badges */}
-          <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5">
+          {/* Media Count Pills */}
+          <div className="absolute bottom-3 right-3 flex items-center gap-1.5">
             {candidate.photos.length > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#1A1816]/80 px-2 py-0.5 font-mono-meta text-[10px] font-medium text-white backdrop-blur-sm">
+              <span className="inline-flex items-center gap-1 rounded-full bg-black/80 px-2.5 py-0.5 font-mono-meta text-[11px] font-semibold text-white">
                 <ImageIcon className="h-3 w-3" />
                 {candidate.photos.length}
               </span>
             )}
             {candidate.videoLinks.length > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#1A1816]/80 px-2 py-0.5 font-mono-meta text-[10px] font-medium text-[#F5D99B] backdrop-blur-sm">
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-0.5 font-mono-meta text-[11px] font-bold text-slate-950">
                 <Video className="h-3 w-3" />
                 {candidate.videoLinks.length}
               </span>
@@ -71,48 +70,26 @@ export function CandidateCard({ candidate, showRoleLabel = false, onOpen }: Cand
           </div>
         </div>
 
-        {/* Details */}
-        <div className="p-4">
+        {/* Clean, Scannable Minimal Footer */}
+        <div className="p-3.5">
           {showRoleLabel && (
-            <p className="font-mono-meta text-[10px] uppercase tracking-[0.12em] text-[#9C7434]">
+            <p className="font-mono-meta text-[10px] font-bold uppercase tracking-wider text-amber-700">
               {role.name}
             </p>
           )}
           <div className="candidate-card-meta flex items-baseline justify-between gap-2">
-            <h3 className="truncate font-display text-xl font-semibold text-[#1A1816]">
-              {candidate.actorName}
-            </h3>
+            <h3 className="truncate text-base font-bold text-slate-950">{candidate.actorName}</h3>
             {candidate.age && (
-              <span className="shrink-0 font-mono-meta text-xs text-[#666057]">
-                {candidate.age} yrs
+              <span className="shrink-0 font-mono-meta text-xs font-semibold text-slate-600">
+                {candidate.age}y
               </span>
             )}
           </div>
 
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#666057]">
-            {candidate.location && (
-              <span className="inline-flex items-center gap-1">
-                <MapPin className="h-3 w-3 text-[#9C7434]" />
-                {candidate.location}
-              </span>
-            )}
-            <span className="inline-flex items-center gap-1">
-              <User className="h-3 w-3 text-[#9C7434]" />
-              {candidate.uploadedByName} ({uploaderRole.shortLabel})
-            </span>
-          </div>
-
-          {candidate.pitchNote && (
-            <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[#453F38]">
-              {candidate.pitchNote}
-            </p>
-          )}
-
-          {/* Team Verdicts & Notes Footer */}
-          <div className="mt-3 flex items-center justify-between gap-2 border-t border-[#EFECE5] pt-2.5">
+          <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-slate-200 pt-2.5">
             <div className="flex flex-wrap gap-1">
               {verdicts.length === 0 ? (
-                <span className="text-[11px] text-[#8A8073]">Awaiting team votes</span>
+                <span className="text-[11px] font-medium text-slate-500">Tap to review</span>
               ) : (
                 verdicts.slice(0, 2).map((v) => {
                   const vMeta = VERDICT_META[v.verdict] ?? VERDICT_META.maybe;
@@ -120,7 +97,7 @@ export function CandidateCard({ candidate, showRoleLabel = false, onOpen }: Cand
                   return (
                     <span
                       key={v.uid}
-                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${vMeta.chipClass}`}
+                      className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-bold ${vMeta.chipClass}`}
                     >
                       {rMeta.shortLabel}: {vMeta.label}
                     </span>
@@ -128,14 +105,14 @@ export function CandidateCard({ candidate, showRoleLabel = false, onOpen }: Cand
                 })
               )}
               {verdicts.length > 2 && (
-                <span className="rounded-full border border-[#E5DFD5] bg-[#FAF8F4] px-2 py-0.5 text-[10px] font-semibold text-[#5D564E]">
+                <span className="rounded-md bg-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-800">
                   +{verdicts.length - 2}
                 </span>
               )}
             </div>
 
-            <span className="inline-flex shrink-0 items-center gap-1 font-mono-meta text-[11px] font-medium text-[#5D564E]">
-              <MessageSquare className="h-3.5 w-3.5 text-[#9C7434]" />
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 font-mono-meta text-[11px] font-bold text-slate-800">
+              <MessageSquare className="h-3 w-3 text-slate-600" />
               {candidate.notesCount}
             </span>
           </div>

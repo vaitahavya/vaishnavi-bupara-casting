@@ -240,32 +240,32 @@ export const TEAM_ROLES: Record<
   director: {
     label: 'Director',
     shortLabel: 'Director',
-    badgeClass: 'bg-[#1E293B] text-[#F8FAFC] border-[#1E293B]',
-    description: 'Reviews auditions, leaves director notes, and locks final cast',
+    badgeClass: 'bg-slate-900 text-white border-slate-900',
+    description: 'Reviews auditions, leaves notes, and locks final cast',
   },
   producer: {
     label: 'Producer',
     shortLabel: 'Producer',
-    badgeClass: 'bg-[#7D5B24] text-[#FFFDF8] border-[#7D5B24]',
-    description: 'Oversees casting progress, approvals, and production alignment',
+    badgeClass: 'bg-amber-600 text-white border-amber-600',
+    description: 'Oversees casting progress and approvals',
   },
   casting_director: {
     label: 'Casting Director',
     shortLabel: 'Casting Dir.',
-    badgeClass: 'bg-[#2C4B82] text-[#F8FAFC] border-[#2C4B82]',
-    description: 'Curates submissions, tracks feedback, and coordinates callbacks',
+    badgeClass: 'bg-blue-700 text-white border-blue-700',
+    description: 'Curates submissions and coordinates callbacks',
   },
   casting_agent: {
     label: 'Casting Agent',
-    shortLabel: 'Casting Agent',
-    badgeClass: 'bg-[#5B4B3A] text-[#FAF7F2] border-[#5B4B3A]',
-    description: 'Uploads talent profiles, headshots, and audition video links',
+    shortLabel: 'Agent',
+    badgeClass: 'bg-violet-700 text-white border-violet-700',
+    description: 'Uploads talent photos and audition video links',
   },
   team: {
     label: 'Creative Team',
     shortLabel: 'Team',
-    badgeClass: 'bg-[#EFECE5] text-[#453F38] border-[#D7CFC2]',
-    description: 'Reviews talent, votes, and shares transparent feedback notes',
+    badgeClass: 'bg-slate-200 text-slate-900 border-slate-300',
+    description: 'Reviews talent, votes, and shares feedback',
   },
 };
 
@@ -275,28 +275,28 @@ export const CANDIDATE_STATUS_META: Record<
 > = {
   submitted: {
     label: 'Submitted',
-    badgeClass: 'bg-[#EFECE6] text-[#575047] border-[#DED7CC]',
-    dotClass: 'bg-[#8A8073]',
+    badgeClass: 'bg-slate-800 text-white border-slate-800',
+    dotClass: 'bg-slate-300',
   },
   shortlisted: {
     label: 'Shortlisted',
-    badgeClass: 'bg-[#FDF3DF] text-[#8A5A10] border-[#EDD3A0]',
-    dotClass: 'bg-[#C48A25]',
+    badgeClass: 'bg-amber-500 text-slate-950 border-amber-500',
+    dotClass: 'bg-slate-950',
   },
   callback: {
     label: 'Callback',
-    badgeClass: 'bg-[#EBF1FA] text-[#2C4B82] border-[#C5D6F0]',
-    dotClass: 'bg-[#3660A8]',
+    badgeClass: 'bg-blue-600 text-white border-blue-600',
+    dotClass: 'bg-blue-100',
   },
   approved: {
     label: 'Approved',
-    badgeClass: 'bg-[#E6F4EC] text-[#1B5E41] border-[#B6DFC8]',
-    dotClass: 'bg-[#1E7A52]',
+    badgeClass: 'bg-emerald-600 text-white border-emerald-600',
+    dotClass: 'bg-emerald-100',
   },
   rejected: {
     label: 'Passed',
-    badgeClass: 'bg-[#FBECEB] text-[#9E3A2F] border-[#EFC6C2]',
-    dotClass: 'bg-[#C0473B]',
+    badgeClass: 'bg-rose-600 text-white border-rose-600',
+    dotClass: 'bg-rose-100',
   },
 };
 
@@ -306,23 +306,23 @@ export const VERDICT_META: Record<
 > = {
   approve: {
     label: 'Approve',
-    activeClass: 'bg-[#1B5E41] text-white border-[#1B5E41]',
-    chipClass: 'bg-[#E6F4EC] text-[#1B5E41] border-[#B6DFC8]',
+    activeClass: 'bg-emerald-600 text-white border-emerald-600',
+    chipClass: 'bg-emerald-100 text-emerald-900 border-emerald-300',
   },
   shortlist: {
     label: 'Shortlist',
-    activeClass: 'bg-[#9C7434] text-white border-[#9C7434]',
-    chipClass: 'bg-[#FDF3DF] text-[#8A5A10] border-[#EDD3A0]',
+    activeClass: 'bg-amber-500 text-slate-950 border-amber-500',
+    chipClass: 'bg-amber-100 text-amber-950 border-amber-300',
   },
   maybe: {
     label: 'Discuss',
-    activeClass: 'bg-[#2C4B82] text-white border-[#2C4B82]',
-    chipClass: 'bg-[#EBF1FA] text-[#2C4B82] border-[#C5D6F0]',
+    activeClass: 'bg-blue-600 text-white border-blue-600',
+    chipClass: 'bg-blue-100 text-blue-900 border-blue-300',
   },
   pass: {
     label: 'Pass',
-    activeClass: 'bg-[#9E3A2F] text-white border-[#9E3A2F]',
-    chipClass: 'bg-[#FBECEB] text-[#9E3A2F] border-[#EFC6C2]',
+    activeClass: 'bg-rose-600 text-white border-rose-600',
+    chipClass: 'bg-rose-100 text-rose-900 border-rose-300',
   },
 };
 
@@ -331,27 +331,27 @@ export const NOTE_TAG_META: Record<
   { label: string; badgeClass: string }
 > = {
   note: {
-    label: 'Review Note',
-    badgeClass: 'bg-[#EFECE6] text-[#575047] border-[#DED7CC]',
+    label: 'Note',
+    badgeClass: 'bg-slate-100 text-slate-800 border-slate-300',
   },
   approved: {
-    label: 'Approval Note',
-    badgeClass: 'bg-[#E6F4EC] text-[#1B5E41] border-[#B6DFC8]',
+    label: 'Approved',
+    badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-300',
   },
   shortlisted: {
-    label: 'Shortlist Note',
-    badgeClass: 'bg-[#FDF3DF] text-[#8A5A10] border-[#EDD3A0]',
+    label: 'Shortlist',
+    badgeClass: 'bg-amber-100 text-amber-950 border-amber-300',
   },
   callback: {
-    label: 'Callback Request',
-    badgeClass: 'bg-[#EBF1FA] text-[#2C4B82] border-[#C5D6F0]',
+    label: 'Callback',
+    badgeClass: 'bg-blue-100 text-blue-900 border-blue-300',
   },
   question: {
     label: 'Question',
-    badgeClass: 'bg-[#F4EFFA] text-[#5B3B8C] border-[#D8C9EE]',
+    badgeClass: 'bg-violet-100 text-violet-900 border-violet-300',
   },
   rejected: {
-    label: 'Pass Reason',
-    badgeClass: 'bg-[#FBECEB] text-[#9E3A2F] border-[#EFC6C2]',
+    label: 'Passed',
+    badgeClass: 'bg-rose-100 text-rose-900 border-rose-300',
   },
 };

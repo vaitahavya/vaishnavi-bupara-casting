@@ -106,44 +106,35 @@ export function AuthGate({ firebaseUser, onAuthenticated }: AuthGateProps) {
   };
 
   return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#F7F4EE] px-4 py-10">
-      <div className="w-full max-w-5xl overflow-hidden rounded-3xl border border-[#DED7CC] bg-white shadow-[0_24px_70px_-24px_rgba(26,24,22,0.18)] lg:grid lg:grid-cols-12">
-        {/* Left Editorial Column */}
-        <div className="flex flex-col justify-between bg-[#1A1816] p-8 text-[#F7F4EE] lg:col-span-5 lg:p-10">
+    <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#0F1115] px-4 py-10">
+      <div className="w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-800 bg-white shadow-2xl lg:grid lg:grid-cols-12">
+        {/* Left High-Contrast Dark Column */}
+        <div className="flex flex-col justify-between bg-[#14171D] p-8 text-white lg:col-span-5">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#B5893D]/40 bg-[#B5893D]/15 px-3 py-1 font-mono-meta text-[11px] uppercase tracking-[0.14em] text-[#E5C687]">
+            <div className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-3 py-1 font-mono-meta text-[11px] font-bold uppercase tracking-wider text-slate-950">
               <Clapperboard className="h-3.5 w-3.5" />
-              Casting Room · {PROJECT_META.handle}
+              Casting Room
             </div>
-            <h1 className="editorial-title mt-5 font-semibold text-white">
+            <h1 className="editorial-title mt-5 font-extrabold text-white">
               {PROJECT_META.title}
             </h1>
-            <p className="mt-2 font-mono-meta text-xs text-[#C7BFB3]">
+            <p className="mt-2 font-mono-meta text-xs text-slate-400">
               {PROJECT_META.format} · {PROJECT_META.location}
             </p>
-
-            <div className="mt-8 border-t border-white/10 pt-6">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#D7B36A]">
-                Overall Look Direction
-              </p>
-              <p className="mt-2.5 text-sm leading-relaxed text-[#DDD6CB]">
-                {PROJECT_META.lookDirection}
-              </p>
-            </div>
           </div>
 
-          <div className="mt-8 space-y-3 border-t border-white/10 pt-6 text-xs text-[#C7BFB3]">
+          <div className="mt-8 space-y-2.5 border-t border-slate-800 pt-5 text-xs text-slate-300">
             <div className="flex items-center justify-between">
-              <span>Pre-loaded Roles</span>
-              <span className="font-mono-meta font-semibold text-white">12 Characters</span>
+              <span className="text-slate-400">Roles</span>
+              <span className="font-mono-meta font-bold text-white">12 Characters</span>
             </div>
             <div className="flex items-center justify-between">
-              <span>Storylines</span>
+              <span className="text-slate-400">Storylines</span>
               <span className="font-mono-meta text-white">Doctors · Mehtas · Bridge</span>
             </div>
             <div className="flex items-center justify-between">
-              <span>Transparency</span>
-              <span className="font-mono-meta text-[#86EFAC]">Live Team Notes & Approvals</span>
+              <span className="text-slate-400">Workflow</span>
+              <span className="font-mono-meta font-semibold text-emerald-400">Live Notes & Approvals</span>
             </div>
           </div>
         </div>

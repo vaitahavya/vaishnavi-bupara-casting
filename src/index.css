@@ -2,17 +2,17 @@
 
 @layer base {
   :root {
-    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-serif: 'Cormorant Garamond', Georgia, serif;
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-    --surface-canvas: #F7F4EE;
+    --surface-canvas: #F1F5F9;
     --surface-card: #FFFFFF;
-    --surface-subtle: #EFECE5;
-    --ink-primary: #1A1816;
-    --ink-secondary: #5D564E;
-    --accent-gold: #9C7434;
-    --accent-gold-strong: #7D5B24;
-    --border-hairline: #E5DFD5;
+    --surface-dark: #0F1115;
+    --ink-primary: #0F172A;
+    --ink-secondary: #475569;
+    --accent-amber: #D97706;
+    --border-strong: #CBD5E1;
   }
 
   body {
@@ -27,25 +27,30 @@
   font-family: var(--font-display);
 }
 
+.font-serif-editorial {
+  font-family: var(--font-serif);
+}
+
 .font-mono-meta {
   font-family: var(--font-mono);
 }
 
-/* Fluid editorial display heading with WCAG 1.4.4 compliant <=2.5x ratio */
+/* Fluid headings with WCAG 1.4.4 compliant <=2.5x ratio */
 .editorial-title {
   font-family: var(--font-display);
-  font-size: clamp(1.5rem, 1.15rem + 1.4vw, 2.35rem);
-  line-height: 1.12;
-  letter-spacing: -0.015em;
+  font-size: clamp(1.35rem, 1.05rem + 1.2vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 .editorial-role-title {
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 1.15rem + 1.1vw, 2.05rem);
-  line-height: 1.15;
+  font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.65rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
-/* Native <dialog> modal styling per modern-web-guidance (dialog, light-dismiss-a-dialog, prevent-page-scroll-under-modal-dialog) */
+/* Native <dialog> modal styling per modern-web-guidance */
 dialog {
   margin: auto;
   padding: 0;
@@ -66,13 +71,13 @@ dialog:modal {
 }
 
 dialog::backdrop {
-  background-color: rgba(20, 17, 14, 0.62);
+  background-color: rgba(15, 17, 21, 0.76);
   backdrop-filter: blur(4px);
   overflow: hidden;
   overscroll-behavior: contain;
 }
 
-/* Post-interaction form validation per modern-web-guidance (validate-input-after-interaction) */
+/* Post-interaction form validation per modern-web-guidance */
 .field-hint {
   display: block;
   color: var(--ink-secondary);
@@ -82,15 +87,15 @@ dialog::backdrop {
 
 .error-msg {
   display: none;
-  color: #B42318;
+  color: #DC2626;
   font-size: 0.8rem;
   margin-top: 0.3rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 :is(input, select, textarea):is(:user-invalid, .user-invalid-fallback) {
-  border-color: #B42318 !important;
-  background-color: #FEF3F2;
+  border-color: #DC2626 !important;
+  background-color: #FEF2F2;
 }
 
 :is(input, select, textarea):is(:user-invalid, .user-invalid-fallback) + .error-msg {
@@ -98,10 +103,10 @@ dialog::backdrop {
 }
 
 :is(input, select, textarea):is(:user-valid, .user-valid-fallback) {
-  border-color: #2E6F4E;
+  border-color: #059669;
 }
 
-/* Single-row accessible tabs with non-color indicator (border pseudo-element) per modern-web-guidance (tabs) */
+/* Single-row accessible tabs with high-contrast border indicator */
 .casting-tablist {
   display: flex;
   flex-wrap: nowrap;
@@ -119,31 +124,54 @@ dialog::backdrop {
   position: relative;
   flex: none;
   scroll-snap-align: start;
-  padding: 0.55rem 0.9rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--ink-secondary);
+  padding: 0.5rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #475569;
   white-space: nowrap;
   transition: color 150ms ease;
 }
 
 .casting-tab:hover {
-  color: var(--ink-primary);
+  color: #0F172A;
 }
 
 .casting-tab[aria-selected="true"] {
-  color: var(--ink-primary);
-  font-weight: 600;
+  color: #0F172A;
+  font-weight: 700;
 }
 
 .casting-tab[aria-selected="true"]::after {
   content: "";
   position: absolute;
-  inset: auto 0.4rem 0;
-  border-block-end: 2.5px solid var(--accent-gold);
+  inset: auto 0.25rem 0;
+  border-block-end: 3px solid #D97706;
 }
 
-/* Container queries on candidate cards per modern-web-guidance (responsive-design) */
+/* Dark sidebar mobile tabs variant */
+.casting-tab-dark {
+  position: relative;
+  flex: none;
+  scroll-snap-align: start;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94A3B8;
+  white-space: nowrap;
+}
+
+.casting-tab-dark[aria-selected="true"] {
+  color: #FFFFFF;
+}
+
+.casting-tab-dark[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset: auto 0.25rem 0;
+  border-block-end: 3px solid #F59E0B;
+}
+
+/* Container queries on candidate cards */
 .candidate-card-wrap {
   container-type: inline-size;
 }
@@ -155,7 +183,6 @@ dialog::backdrop {
   }
 }
 
-/* Screen-reader only live region */
 .visually-hidden:where(:not(:focus-within, :active)) {
   position: absolute !important;
   clip-path: inset(50%) !important;
