@@ -69,10 +69,14 @@ export function OverviewGrid({
                             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
                           )}
                         </div>
-                        <div className="mt-1 flex items-center gap-2 font-mono-meta text-[11px] font-semibold text-slate-600">
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5 font-mono-meta text-[11px] font-semibold text-slate-600">
                           <span>Age {role.ageSummary}</span>
                           <span>·</span>
-                          <span className="text-slate-900">{roleCandidates.length} entries</span>
+                          <span className="rounded bg-amber-100 px-1.5 py-0.2 font-bold text-amber-950">
+                            {role.shootDaysCount}d ({role.shootDays})
+                          </span>
+                          <span>·</span>
+                          <span className="text-slate-900">{roleCandidates.length}</span>
                         </div>
                       </div>
                     </button>

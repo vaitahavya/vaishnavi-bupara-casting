@@ -39,14 +39,18 @@ export type RoleId =
   | 'vikram-mehta'
   | 'meera-mehta'
   | 'anjali-mehta'
+  | 'amma-mehta'
   | 'mehta-teen'
   | 'mehta-child-1'
   | 'mehta-child-2'
   | 'aarav'
   | 'aarav-child'
-  | 'classmate-rival';
+  | 'classmate-rival'
+  | 'extras-association'
+  | 'extras-hospital'
+  | 'extras-centre';
 
-export type StorylineKey = 'doctors' | 'mehtas' | 'bridge' | 'supporting';
+export type StorylineKey = 'doctors' | 'mehtas' | 'bridge' | 'supporting' | 'extras';
 
 export interface RoleBrief {
   id: RoleId;
@@ -56,11 +60,13 @@ export interface RoleBrief {
   storylineLabel: string;
   ageRange: string;
   ageSummary: string;
+  shootDays: string;
+  shootDaysCount: number;
   build: string;
   look: string;
   characterRead: string;
   pairingNote?: string;
-  category: 'adult' | 'child';
+  category: 'adult' | 'child' | 'extras';
 }
 
 export interface TeamMember {

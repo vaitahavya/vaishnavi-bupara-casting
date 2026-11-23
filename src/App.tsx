@@ -209,8 +209,10 @@ export default function App() {
                 Vaishnavi Bupara Casting
               </h1>
               <p className="font-mono-meta text-[11px] font-medium text-slate-400">
-                <span className="text-emerald-400">{lockedRolesCount}/12 Cast</span> ·{' '}
-                {candidates.length} Entries
+                <span className="text-emerald-400">
+                  {lockedRolesCount}/{ROLES.length} Cast
+                </span>{' '}
+                · {candidates.length} Entries
               </p>
             </div>
           </div>
@@ -309,7 +311,7 @@ export default function App() {
               }}
               className="casting-tab-dark"
             >
-              All 12 Grid
+              All {ROLES.length} Grid
             </button>
           </div>
         </div>
@@ -335,7 +337,7 @@ export default function App() {
             >
               <span className="inline-flex items-center gap-2">
                 <LayoutGrid className="h-4 w-4" />
-                All 12 Roles Grid
+                All {ROLES.length} Roles Grid
               </span>
               <span className="font-mono-meta text-[11px]">{candidates.length}</span>
             </button>
@@ -377,13 +379,28 @@ export default function App() {
                                   )}
                                   <span className="truncate text-xs font-bold">{r.name}</span>
                                 </div>
-                                <span
-                                  className={`font-mono-meta text-[10px] ${
-                                    selected ? 'text-slate-600' : 'text-slate-400'
-                                  }`}
-                                >
-                                  Age {r.ageSummary}
-                                </span>
+                                <div className="mt-0.5 flex items-center gap-1.5 font-mono-meta text-[10px]">
+                                  <span className={selected ? 'text-slate-600' : 'text-slate-400'}>
+                                    Age {r.ageSummary}
+                                  </span>
+                                  <span className={selected ? 'text-slate-400' : 'text-slate-600'}>
+                                    ·
+                                  </span>
+                                  <span
+                                    className={`font-bold ${
+                                      selected ? 'text-amber-700' : 'text-amber-400'
+                                    }`}
+                                  >
+                                    {r.shootDaysCount}d
+                                  </span>
+                                  <span
+                                    className={`truncate ${
+                                      selected ? 'text-slate-500' : 'text-slate-500'
+                                    }`}
+                                  >
+                                    ({r.shootDays})
+                                  </span>
+                                </div>
                               </div>
                               <span
                                 className={`shrink-0 rounded-full px-2 py-0.5 font-mono-meta text-[11px] font-bold ${

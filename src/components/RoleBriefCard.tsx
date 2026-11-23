@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp, Plus, CheckCircle2, Info } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, CheckCircle2, Info, CalendarDays } from 'lucide-react';
 import type { RoleBrief } from '../types';
 
 interface RoleBriefCardProps {
@@ -31,8 +31,9 @@ export function RoleBriefCard({
             <span className="rounded-md bg-slate-900 px-2 py-0.5 font-mono-meta text-[11px] font-semibold text-white">
               Age {role.ageSummary}
             </span>
-            <span className="rounded-md border border-slate-300 bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
-              {role.storylineLabel}
+            <span className="inline-flex items-center gap-1 rounded-md border border-amber-400 bg-amber-100 px-2.5 py-0.5 font-mono-meta text-[11px] font-bold text-amber-950">
+              <CalendarDays className="h-3 w-3 text-amber-700" />
+              {role.shootDaysCount} {role.shootDaysCount === 1 ? 'Day' : 'Days'} · {role.shootDays}
             </span>
             {approvedCount > 0 && (
               <span className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-0.5 text-[11px] font-semibold text-white">

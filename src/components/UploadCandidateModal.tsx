@@ -324,10 +324,10 @@ export function UploadCandidateModal({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label htmlFor="cand-role" className="block text-xs font-semibold text-[#1A1816]">
-                Target Role (12 Brief Characters)
+                Target Role & Required Shoot Days
               </label>
               <span id="cand-role-hint" className="field-hint">
-                Assign this talent to a specific character from the Vaishnavi Bupara brief
+                Verify actor availability for the listed shoot days before submitting
               </span>
               <select
                 id="cand-role"
@@ -340,7 +340,7 @@ export function UploadCandidateModal({
                   <optgroup key={sec.key} label={sec.title}>
                     {ROLES.filter((r) => r.storyline === sec.key).map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.name} ({r.ageSummary}) — {r.subtitle}
+                        {r.name} ({r.ageSummary}) · {r.shootDaysCount}d ({r.shootDays})
                       </option>
                     ))}
                   </optgroup>

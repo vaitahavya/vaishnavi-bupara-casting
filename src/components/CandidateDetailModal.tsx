@@ -275,8 +275,8 @@ export function CandidateDetailModal({
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5DFD5] bg-white px-5 py-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono-meta text-[11px] uppercase tracking-[0.12em] text-[#9C7434]">
-                {role.name} · {role.storylineLabel}
+              <span className="font-mono-meta text-[11px] font-bold uppercase tracking-[0.12em] text-amber-700">
+                {role.name} · {role.shootDaysCount}d ({role.shootDays})
               </span>
               <span
                 className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${statusMeta.badgeClass}`}

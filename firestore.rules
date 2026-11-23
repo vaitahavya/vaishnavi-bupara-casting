@@ -29,7 +29,7 @@ rules_version = '2';
 // Collection: /candidates/{candidateId}
 // Document ID: auto-generated or client-generated ID
 // Fields:
-//   - roleId: string (required, one of 12 valid role IDs)
+//   - roleId: string (required, one of 16 valid role IDs)
 //   - actorName: string (required, 1..100 chars)
 //   - age: string (required, 0..30 chars)
 //   - location: string (required, 0..100 chars)
@@ -189,12 +189,16 @@ service cloud.firestore {
         'vikram-mehta',
         'meera-mehta',
         'anjali-mehta',
+        'amma-mehta',
         'mehta-teen',
         'mehta-child-1',
         'mehta-child-2',
         'aarav',
         'aarav-child',
-        'classmate-rival'
+        'classmate-rival',
+        'extras-association',
+        'extras-hospital',
+        'extras-centre'
       ];
     }
 
@@ -253,7 +257,7 @@ service cloud.firestore {
     }
 
     function isValidVideoItem(item) {
-      return isValidUrl(item) ||
+      return (item is string && isValidUrl(item)) ||
              (item is map &&
               item.keys().size() >= 1 &&
               item.keys().size() <= 6 &&
