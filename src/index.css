@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --surface-canvas: #F7F4EE;
+    --surface-card: #FFFFFF;
+    --surface-subtle: #EFECE5;
+    --ink-primary: #1A1816;
+    --ink-secondary: #5D564E;
+    --accent-gold: #9C7434;
+    --accent-gold-strong: #7D5B24;
+    --border-hairline: #E5DFD5;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--surface-canvas);
+    color: var(--ink-primary);
+    min-height: 100dvh;
+  }
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono-meta {
+  font-family: var(--font-mono);
+}
+
+/* Fluid editorial display heading with WCAG 1.4.4 compliant <=2.5x ratio */
+.editorial-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.15rem + 1.4vw, 2.35rem);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+}
+
+.editorial-role-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 1.15rem + 1.1vw, 2.05rem);
+  line-height: 1.15;
+}
+
+/* Native <dialog> modal styling per modern-web-guidance (dialog, light-dismiss-a-dialog, prevent-page-scroll-under-modal-dialog) */
+dialog {
+  margin: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  max-width: min(96dvw, 1120px);
+  max-height: 92dvh;
+}
+
+dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  background-color: rgba(20, 17, 14, 0.62);
+  backdrop-filter: blur(4px);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+/* Post-interaction form validation per modern-web-guidance (validate-input-after-interaction) */
+.field-hint {
+  display: block;
+  color: var(--ink-secondary);
+  font-size: 0.78rem;
+  margin-bottom: 0.3rem;
+}
+
+.error-msg {
+  display: none;
+  color: #B42318;
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+  font-weight: 500;
+}
+
+:is(input, select, textarea):is(:user-invalid, .user-invalid-fallback) {
+  border-color: #B42318 !important;
+  background-color: #FEF3F2;
+}
+
+:is(input, select, textarea):is(:user-invalid, .user-invalid-fallback) + .error-msg {
+  display: block;
+}
+
+:is(input, select, textarea):is(:user-valid, .user-valid-fallback) {
+  border-color: #2E6F4E;
+}
+
+/* Single-row accessible tabs with non-color indicator (border pseudo-element) per modern-web-guidance (tabs) */
+.casting-tablist {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: inline proximity;
+  gap: 0.25rem;
+}
+
+.casting-tablist::-webkit-scrollbar {
+  display: none;
+}
+
+.casting-tab {
+  position: relative;
+  flex: none;
+  scroll-snap-align: start;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+  transition: color 150ms ease;
+}
+
+.casting-tab:hover {
+  color: var(--ink-primary);
+}
+
+.casting-tab[aria-selected="true"] {
+  color: var(--ink-primary);
+  font-weight: 600;
+}
+
+.casting-tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset: auto 0.4rem 0;
+  border-block-end: 2.5px solid var(--accent-gold);
+}
+
+/* Container queries on candidate cards per modern-web-guidance (responsive-design) */
+.candidate-card-wrap {
+  container-type: inline-size;
+}
+
+@container (max-width: 240px) {
+  .candidate-card-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Screen-reader only live region */
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}

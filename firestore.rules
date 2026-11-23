@@ -1,0 +1,592 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model — "Vaishnavi Bupara Micro-Drama" Casting App
+// ===============================================================
+//
+// Database: Cloud Firestore Standard Edition (default database)
+//
+// Authentication:
+//   - Google Sign-In (sign_in_provider == 'google.com')
+//   - Anonymous Auth (sign_in_provider == 'anonymous') with shared
+//     team passcode ('BUPARA2026') verified on /teamMembers/{uid} create.
+//
+// Collection: /teamMembers/{uid}
+// Document ID: Firebase Auth UID (must equal request.auth.uid)
+// Fields:
+//   - uid: string (required, immutable, == path uid == request.auth.uid)
+//   - displayName: string (required, 1..80 chars)
+//   - role: string (required, enum: casting_agent, casting_director,
+//           director, producer, team)
+//   - email: string | null (optional, <= 120 chars, valid email)
+//   - photoURL: string | null (optional, <= 500 chars, http/https URL)
+//   - authMethod: string (required, immutable, enum: 'google', 'passcode')
+//   - passcode: string | null (required == 'BUPARA2026' for anonymous/passcode
+//               sign-in; immutable on update; omitted/null for Google sign-in)
+//   - joinedAt: timestamp (required, immutable)
+//   - updatedAt: timestamp (required)
+//
+// Collection: /candidates/{candidateId}
+// Document ID: auto-generated or client-generated ID
+// Fields:
+//   - roleId: string (required, one of 12 valid role IDs)
+//   - actorName: string (required, 1..100 chars)
+//   - age: string (required, 0..30 chars)
+//   - location: string (required, 0..100 chars)
+//   - agencyOrContact: string (required, 0..160 chars)
+//   - pitchNote: string (required, 0..2000 chars)
+//   - photos: list (required, max 6 items; strings <= 150KB or bounded maps)
+//   - videoLinks: list (required, max 8 items; http/https URLs or maps with url)
+//   - status: string (required, enum: submitted, shortlisted, callback,
+//             approved, rejected)
+//   - statusUpdatedBy: string (required, 1..80 chars)
+//   - statusUpdatedByRole: string (required, valid team role)
+//   - statusUpdatedByUid: string (required, == request.auth.uid on create and
+//                         whenever status fields change)
+//   - statusUpdatedAt: timestamp (required)
+//   - verdicts: map (optional, empty on create, max 100 entries; team members
+//               may only add/modify/remove their own request.auth.uid key)
+//   - uploadedByUid: string (required, immutable, == request.auth.uid on create)
+//   - uploadedByName: string (required, immutable, 1..80 chars)
+//   - uploadedByRole: string (required, immutable, valid team role)
+//   - notesCount: int (required, 0 on create, >= 0, +/-1 per update)
+//   - createdAt: timestamp (required, immutable)
+//   - updatedAt: timestamp (required)
+//
+// Subcollection: /candidates/{candidateId}/notes/{noteId}
+// Document ID: auto-generated ID
+// Fields:
+//   - candidateId: string (required, == path candidateId, 1..100 chars)
+//   - roleId: string (required, valid role ID)
+//   - authorUid: string (required, == request.auth.uid on create)
+//   - authorName: string (required, 1..80 chars)
+//   - authorRole: string (required, valid team role)
+//   - body: string (required, 1..2000 chars)
+//   - decisionTag: string (required, enum: note, approved, shortlisted,
+//                  callback, rejected, question)
+//   - createdAt: timestamp (required)
+//
+// Collection: /media/{mediaId}
+// Document ID: auto-generated or client-generated ID
+// Fields:
+//   - candidateId: string (required, 1..100 chars)
+//   - roleId: string (required, valid role ID)
+//   - dataUrl: string (required, base64 data:image/(webp|jpeg|png) URL <= 900000)
+//   - mimeType: string (required, enum: image/webp, image/jpeg, image/png)
+//   - width: int (required, 1..4000)
+//   - height: int (required, 1..4000)
+//   - uploadedByUid: string (required, == request.auth.uid on create)
+//   - createdAt: timestamp (required)
+//
+// Collection: /activity/{activityId}
+// Document ID: auto-generated ID
+// Fields:
+//   - type: string (required, enum: candidate_uploaded, status_changed,
+//           note_added, verdict_cast, candidate_updated)
+//   - roleId: string (required, valid role ID)
+//   - roleName: string (required, 1..100 chars)
+//   - candidateId: string (required, 1..100 chars)
+//   - actorName: string (required, 1..100 chars)
+//   - actorUid: string (required, == request.auth.uid on create)
+//   - actorDisplayName: string (required, 1..80 chars)
+//   - actorRole: string (required, valid team role)
+//   - summary: string (required, 1..400 chars)
+//   - createdAt: timestamp (required)
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isTeamMember() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/teamMembers/$(request.auth.uid));
+    }
+
+    function getTeamMember() {
+      return get(/databases/$(database)/documents/teamMembers/$(request.auth.uid)).data;
+    }
+
+    function hasLeadRole() {
+      return isTeamMember() &&
+             getTeamMember().role in ['casting_director', 'director', 'producer'];
+    }
+
+    function hasDirectorOrProducerRole() {
+      return isTeamMember() &&
+             getTeamMember().role in ['director', 'producer'];
+    }
+
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) ||
+             request.resource.data.uid == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return !('uid' in request.resource.data) ||
+             request.resource.data.uid == resource.data.uid;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    function isNonEmptyString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isBoundedString(val, maxLen) {
+      return val is string && val.size() <= maxLen;
+    }
+
+    function isValidUrl(url) {
+      return url is string &&
+             url.size() >= 8 &&
+             url.size() <= 500 &&
+             (url.matches('^https://.*') || url.matches('^http://.*'));
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+             email.size() <= 120 &&
+             email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+
+    // ===============================================================
+    // Domain Enum Validators
+    // ===============================================================
+
+    function isValidTeamRole(role) {
+      return role is string &&
+             role in ['casting_agent', 'casting_director', 'director', 'producer', 'team'];
+    }
+
+    function isValidRoleId(roleId) {
+      return roleId is string && roleId in [
+        'arjun-reddy',
+        'kavya-reddy',
+        'rajesh-mehta',
+        'vikram-mehta',
+        'meera-mehta',
+        'anjali-mehta',
+        'mehta-teen',
+        'mehta-child-1',
+        'mehta-child-2',
+        'aarav',
+        'aarav-child',
+        'classmate-rival'
+      ];
+    }
+
+    function isValidCandidateStatus(status) {
+      return status is string &&
+             status in ['submitted', 'shortlisted', 'callback', 'approved', 'rejected'];
+    }
+
+    function isValidDecisionTag(tag) {
+      return tag is string &&
+             tag in ['note', 'approved', 'shortlisted', 'callback', 'rejected', 'question'];
+    }
+
+    function isValidActivityType(activityType) {
+      return activityType is string &&
+             activityType in [
+               'candidate_uploaded',
+               'status_changed',
+               'note_added',
+               'verdict_cast',
+               'candidate_updated'
+             ];
+    }
+
+    // ===============================================================
+    // Deep Array & Nested Map Validators
+    // ===============================================================
+
+    function isValidPhotoItem(item) {
+      return (item is string && item.size() > 0 && item.size() <= 150000) ||
+             (item is map &&
+              item.keys().size() >= 1 &&
+              item.keys().size() <= 8 &&
+              (!('mediaId' in item) || isNonEmptyString(item.mediaId, 1, 100)) &&
+              (!('id' in item) || isNonEmptyString(item.id, 1, 100)) &&
+              (!('url' in item) || (item.url is string && item.url.size() > 0 && item.url.size() <= 150000)) &&
+              (!('thumbUrl' in item) || (item.thumbUrl is string && item.thumbUrl.size() > 0 && item.thumbUrl.size() <= 150000)) &&
+              (!('thumbDataUrl' in item) || (item.thumbDataUrl is string && item.thumbDataUrl.size() > 0 && item.thumbDataUrl.size() <= 150000)) &&
+              (!('dataUrl' in item) || (item.dataUrl is string && item.dataUrl.size() > 0 && item.dataUrl.size() <= 150000)) &&
+              (!('caption' in item) || isBoundedString(item.caption, 200)) &&
+              (!('name' in item) || isBoundedString(item.name, 120)) &&
+              (!('mimeType' in item) || isBoundedString(item.mimeType, 40)) &&
+              (!('width' in item) || (item.width is int && item.width >= 1 && item.width <= 4000)) &&
+              (!('height' in item) || (item.height is int && item.height >= 1 && item.height <= 4000)));
+    }
+
+    function isValidPhotosList(photos) {
+      return photos is list &&
+             photos.size() <= 6 &&
+             (photos.size() < 1 || isValidPhotoItem(photos[0])) &&
+             (photos.size() < 2 || isValidPhotoItem(photos[1])) &&
+             (photos.size() < 3 || isValidPhotoItem(photos[2])) &&
+             (photos.size() < 4 || isValidPhotoItem(photos[3])) &&
+             (photos.size() < 5 || isValidPhotoItem(photos[4])) &&
+             (photos.size() < 6 || isValidPhotoItem(photos[5]));
+    }
+
+    function isValidVideoItem(item) {
+      return isValidUrl(item) ||
+             (item is map &&
+              item.keys().size() >= 1 &&
+              item.keys().size() <= 6 &&
+              'url' in item && isValidUrl(item.url) &&
+              (!('label' in item) || isBoundedString(item.label, 120)) &&
+              (!('title' in item) || isBoundedString(item.title, 120)) &&
+              (!('platform' in item) || isBoundedString(item.platform, 40)));
+    }
+
+    function isValidVideoLinksList(links) {
+      return links is list &&
+             links.size() <= 8 &&
+             (links.size() < 1 || isValidVideoItem(links[0])) &&
+             (links.size() < 2 || isValidVideoItem(links[1])) &&
+             (links.size() < 3 || isValidVideoItem(links[2])) &&
+             (links.size() < 4 || isValidVideoItem(links[3])) &&
+             (links.size() < 5 || isValidVideoItem(links[4])) &&
+             (links.size() < 6 || isValidVideoItem(links[5])) &&
+             (links.size() < 7 || isValidVideoItem(links[6])) &&
+             (links.size() < 8 || isValidVideoItem(links[7]));
+    }
+
+    function isValidVerdictEntry(entry) {
+      return isNonEmptyString(entry, 1, 32) ||
+             (entry is map &&
+              entry.keys().size() >= 1 &&
+              entry.keys().size() <= 8 &&
+              (!('verdict' in entry) || isNonEmptyString(entry.verdict, 1, 32)) &&
+              (!('vote' in entry) || isNonEmptyString(entry.vote, 1, 32)) &&
+              (!('status' in entry) || isNonEmptyString(entry.status, 1, 32)) &&
+              (!('decision' in entry) || isNonEmptyString(entry.decision, 1, 32)) &&
+              (!('name' in entry) || isBoundedString(entry.name, 80)) &&
+              (!('displayName' in entry) || isBoundedString(entry.displayName, 80)) &&
+              (!('uid' in entry) || entry.uid == request.auth.uid) &&
+              (!('role' in entry) || isValidTeamRole(entry.role)) &&
+              (!('note' in entry) || isBoundedString(entry.note, 500)) &&
+              (!('updatedAt' in entry) || entry.updatedAt is timestamp));
+    }
+
+    function isValidOwnVerdictChange() {
+      let newVerdicts = request.resource.data.verdicts;
+      return newVerdicts is map &&
+             newVerdicts.size() <= 100 &&
+             (
+               (('verdicts' in resource.data && resource.data.verdicts is map) &&
+                newVerdicts.diff(resource.data.verdicts).affectedKeys().hasOnly([request.auth.uid])) ||
+               (!('verdicts' in resource.data) &&
+                newVerdicts.keys().hasOnly([request.auth.uid]))
+             ) &&
+             (
+               !(request.auth.uid in newVerdicts) ||
+               isValidVerdictEntry(newVerdicts[request.auth.uid])
+             );
+    }
+
+    // ===============================================================
+    // Domain Validators (Used in BOTH create and update)
+    // ===============================================================
+
+    function isValidTeamMember(data, uid) {
+      let provider = request.auth.token.firebase.sign_in_provider;
+      let isAnonAuth = provider == 'anonymous' &&
+                       'authMethod' in data &&
+                       data.authMethod == 'passcode' &&
+                       'passcode' in data &&
+                       data.passcode is string &&
+                       data.passcode == 'BUPARA2026';
+      let isGoogleAuth = provider == 'google.com' &&
+                         'authMethod' in data &&
+                         data.authMethod == 'google' &&
+                         (!('passcode' in data) || data.passcode == null || data.passcode == 'BUPARA2026');
+      let validEmail = !('email' in data) ||
+                       data.email == null ||
+                       data.email == '' ||
+                       (isValidEmail(data.email) &&
+                        (provider != 'google.com' ||
+                         !('email' in request.auth.token) ||
+                         data.email == request.auth.token.email));
+      let validPhoto = !('photoURL' in data) ||
+                       data.photoURL == null ||
+                       data.photoURL == '' ||
+                       isValidUrl(data.photoURL);
+
+      return hasOnlyAllowedFields([
+               'uid', 'displayName', 'role', 'email', 'photoURL',
+               'authMethod', 'passcode', 'joinedAt', 'updatedAt'
+             ]) &&
+             hasRequiredFields([
+               'uid', 'displayName', 'role', 'authMethod', 'joinedAt', 'updatedAt'
+             ]) &&
+             data.uid is string &&
+             data.uid == uid &&
+             data.uid == request.auth.uid &&
+             isNonEmptyString(data.displayName, 1, 80) &&
+             isValidTeamRole(data.role) &&
+             validEmail &&
+             validPhoto &&
+             (isAnonAuth || isGoogleAuth) &&
+             data.joinedAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidCandidate(data) {
+      return hasOnlyAllowedFields([
+               'roleId', 'actorName', 'age', 'location', 'agencyOrContact',
+               'pitchNote', 'photos', 'videoLinks', 'status', 'statusUpdatedBy',
+               'statusUpdatedByRole', 'statusUpdatedByUid', 'statusUpdatedAt',
+               'verdicts', 'uploadedByUid', 'uploadedByName', 'uploadedByRole',
+               'notesCount', 'createdAt', 'updatedAt'
+             ]) &&
+             hasRequiredFields([
+               'roleId', 'actorName', 'age', 'location', 'agencyOrContact',
+               'pitchNote', 'photos', 'videoLinks', 'status', 'statusUpdatedBy',
+               'statusUpdatedByRole', 'statusUpdatedByUid', 'statusUpdatedAt',
+               'uploadedByUid', 'uploadedByName', 'uploadedByRole',
+               'notesCount', 'createdAt', 'updatedAt'
+             ]) &&
+             isValidRoleId(data.roleId) &&
+             isNonEmptyString(data.actorName, 1, 100) &&
+             isBoundedString(data.age, 30) &&
+             isBoundedString(data.location, 100) &&
+             isBoundedString(data.agencyOrContact, 160) &&
+             isBoundedString(data.pitchNote, 2000) &&
+             isValidPhotosList(data.photos) &&
+             isValidVideoLinksList(data.videoLinks) &&
+             isValidCandidateStatus(data.status) &&
+             isNonEmptyString(data.statusUpdatedBy, 1, 80) &&
+             isValidTeamRole(data.statusUpdatedByRole) &&
+             isNonEmptyString(data.statusUpdatedByUid, 1, 128) &&
+             data.statusUpdatedAt is timestamp &&
+             (!('verdicts' in data) || (data.verdicts is map && data.verdicts.size() <= 100)) &&
+             isNonEmptyString(data.uploadedByUid, 1, 128) &&
+             isNonEmptyString(data.uploadedByName, 1, 80) &&
+             isValidTeamRole(data.uploadedByRole) &&
+             data.notesCount is int &&
+             data.notesCount >= 0 &&
+             data.notesCount <= 10000 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isAuthorizedCandidateUpdate() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      let detailFields = [
+        'actorName', 'age', 'location', 'agencyOrContact',
+        'pitchNote', 'photos', 'videoLinks', 'roleId'
+      ];
+      let statusFields = [
+        'status', 'statusUpdatedBy', 'statusUpdatedByRole',
+        'statusUpdatedByUid', 'statusUpdatedAt'
+      ];
+      let detailsAllowed = !changed.hasAny(detailFields) ||
+                           resource.data.uploadedByUid == request.auth.uid ||
+                           hasLeadRole();
+      let statusAllowed = !changed.hasAny(statusFields) ||
+                          request.resource.data.statusUpdatedByUid == request.auth.uid;
+      let verdictsAllowed = !changed.hasAny(['verdicts']) ||
+                            ('verdicts' in request.resource.data && isValidOwnVerdictChange());
+      let notesCountAllowed = !changed.hasAny(['notesCount']) ||
+                              request.resource.data.notesCount == resource.data.notesCount + 1 ||
+                              (request.resource.data.notesCount == resource.data.notesCount - 1 &&
+                               request.resource.data.notesCount >= 0);
+
+      return areImmutableFieldsUnchanged([
+               'uploadedByUid', 'uploadedByName', 'uploadedByRole', 'createdAt'
+             ]) &&
+             detailsAllowed &&
+             statusAllowed &&
+             verdictsAllowed &&
+             notesCountAllowed;
+    }
+
+    function isValidNote(data, candidateId) {
+      return hasOnlyAllowedFields([
+               'candidateId', 'roleId', 'authorUid', 'authorName',
+               'authorRole', 'body', 'decisionTag', 'createdAt'
+             ]) &&
+             hasRequiredFields([
+               'candidateId', 'roleId', 'authorUid', 'authorName',
+               'authorRole', 'body', 'decisionTag', 'createdAt'
+             ]) &&
+             isNonEmptyString(data.candidateId, 1, 100) &&
+             data.candidateId == candidateId &&
+             isValidRoleId(data.roleId) &&
+             isNonEmptyString(data.authorUid, 1, 128) &&
+             isNonEmptyString(data.authorName, 1, 80) &&
+             isValidTeamRole(data.authorRole) &&
+             isNonEmptyString(data.body, 1, 2000) &&
+             isValidDecisionTag(data.decisionTag) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidMediaDataUrl(mimeType, dataUrl) {
+      return dataUrl is string &&
+             dataUrl.size() <= 900000 &&
+             (
+               (mimeType == 'image/webp' &&
+                dataUrl.size() > 23 &&
+                dataUrl[0:23] == 'data:image/webp;base64,') ||
+               (mimeType == 'image/jpeg' &&
+                dataUrl.size() > 23 &&
+                dataUrl[0:23] == 'data:image/jpeg;base64,') ||
+               (mimeType == 'image/png' &&
+                dataUrl.size() > 22 &&
+                dataUrl[0:22] == 'data:image/png;base64,')
+             );
+    }
+
+    function isValidMedia(data) {
+      return hasOnlyAllowedFields([
+               'candidateId', 'roleId', 'dataUrl', 'mimeType',
+               'width', 'height', 'uploadedByUid', 'createdAt'
+             ]) &&
+             hasRequiredFields([
+               'candidateId', 'roleId', 'dataUrl', 'mimeType',
+               'width', 'height', 'uploadedByUid', 'createdAt'
+             ]) &&
+             isNonEmptyString(data.candidateId, 1, 100) &&
+             isValidRoleId(data.roleId) &&
+             data.mimeType is string &&
+             data.mimeType in ['image/webp', 'image/jpeg', 'image/png'] &&
+             isValidMediaDataUrl(data.mimeType, data.dataUrl) &&
+             data.width is int && data.width >= 1 && data.width <= 4000 &&
+             data.height is int && data.height >= 1 && data.height <= 4000 &&
+             isNonEmptyString(data.uploadedByUid, 1, 128) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidActivity(data) {
+      return hasOnlyAllowedFields([
+               'type', 'roleId', 'roleName', 'candidateId', 'actorName',
+               'actorUid', 'actorDisplayName', 'actorRole', 'summary', 'createdAt'
+             ]) &&
+             hasRequiredFields([
+               'type', 'roleId', 'roleName', 'candidateId', 'actorName',
+               'actorUid', 'actorDisplayName', 'actorRole', 'summary', 'createdAt'
+             ]) &&
+             isValidActivityType(data.type) &&
+             isValidRoleId(data.roleId) &&
+             isNonEmptyString(data.roleName, 1, 100) &&
+             isNonEmptyString(data.candidateId, 1, 100) &&
+             isNonEmptyString(data.actorName, 1, 100) &&
+             isNonEmptyString(data.actorUid, 1, 128) &&
+             isNonEmptyString(data.actorDisplayName, 1, 80) &&
+             isValidTeamRole(data.actorRole) &&
+             isNonEmptyString(data.summary, 1, 400) &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // 1. Team Members
+    match /teamMembers/{uid} {
+      allow read: if isOwner(uid) || isTeamMember();
+
+      allow create: if isOwner(uid) &&
+                       uidUnchanged() &&
+                       isValidTeamMember(request.resource.data, uid);
+
+      allow update: if isOwner(uid) &&
+                       uidNotModified() &&
+                       areImmutableFieldsUnchanged(['uid', 'authMethod', 'joinedAt', 'passcode']) &&
+                       isValidTeamMember(request.resource.data, uid);
+
+      allow delete: if false;
+    }
+
+    // 2. Candidates & Nested Notes
+    match /candidates/{candidateId} {
+      allow read: if isTeamMember();
+
+      allow create: if isTeamMember() &&
+                       isValidCandidate(request.resource.data) &&
+                       request.resource.data.uploadedByUid == request.auth.uid &&
+                       request.resource.data.statusUpdatedByUid == request.auth.uid &&
+                       request.resource.data.notesCount == 0 &&
+                       (!('verdicts' in request.resource.data) ||
+                        request.resource.data.verdicts.size() == 0);
+
+      allow update: if isTeamMember() &&
+                       isValidCandidate(request.resource.data) &&
+                       isAuthorizedCandidateUpdate();
+
+      allow delete: if isTeamMember() &&
+                       (resource.data.uploadedByUid == request.auth.uid || hasLeadRole());
+
+      // 3. Candidate Notes (Immutable transparent audit trail; author/director/producer delete)
+      match /notes/{noteId} {
+        allow read: if isTeamMember();
+
+        allow create: if isTeamMember() &&
+                         exists(/databases/$(database)/documents/candidates/$(candidateId)) &&
+                         isValidNote(request.resource.data, candidateId) &&
+                         request.resource.data.authorUid == request.auth.uid;
+
+        allow update: if false;
+
+        allow delete: if isTeamMember() &&
+                         (resource.data.authorUid == request.auth.uid ||
+                          hasDirectorOrProducerRole());
+      }
+    }
+
+    // 4. Full-Resolution Compressed Casting Media
+    match /media/{mediaId} {
+      allow read: if isTeamMember();
+
+      allow create: if isTeamMember() &&
+                       isValidMedia(request.resource.data) &&
+                       request.resource.data.uploadedByUid == request.auth.uid;
+
+      allow update: if false;
+
+      allow delete: if isTeamMember() &&
+                       (resource.data.uploadedByUid == request.auth.uid || hasLeadRole());
+    }
+
+    // 5. Transparent Team Activity Feed (Append-only immutable audit trail)
+    match /activity/{activityId} {
+      allow read: if isTeamMember();
+
+      allow create: if isTeamMember() &&
+                       isValidActivity(request.resource.data) &&
+                       request.resource.data.actorUid == request.auth.uid;
+
+      allow update, delete: if false;
+    }
+
+    // 6. Default Deny on all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
